@@ -45,3 +45,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 lib/credentials/service-account.json
+.env
+.env.local
