@@ -1,0 +1,39 @@
+/* app/globals.css */
+@import "tailwindcss";
+
+@theme {
+  /* Giữ lại màu nền Dashboard tùy chỉnh của bạn để sử dụng như một biến hệ thống */
+  --color-dashboard-bg: #0d0e12;
+}
+
+@utility html-body-reset {
+  background-color: #0d0e12;
+  color: var(--color-zinc-100);
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Áp dụng class tùy chỉnh vào html và body */
+html, body {
+  @apply html-body-reset;
+}
+
+/* Tùy chỉnh thanh cuộn siêu mỏng cho phong cách Dashboard */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0d0e12;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}

@@ -1,0 +1,7 @@
+- [ ] Remove leaked Google service account secret from repository (delete lib/credentials/service-account.json)
+- [ ] Stop referencing committed credentials file in code (update lib/db.ts to use env vars or ADC)
+- [ ] Add .env.example documenting required Google credentials env vars
+- [ ] Add/update .gitignore to ensure credentials JSON is ignored
+- [ ] Rewrite Git history so the secret never appears (git filter-repo)
+- [ ] Force-push cleaned history to origin main
+- [ ] Verify app can still load with credentials provided via environment
