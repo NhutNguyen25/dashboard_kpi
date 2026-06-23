@@ -1,5 +1,5 @@
 import { getSheetsClient } from "../lib/db";
-import dotenv from "dotenv";
+
 import path from "path";
 import fs from "fs";
 
