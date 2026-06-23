@@ -2,7 +2,6 @@
 # Google Cloud credentials
 lib/credentials/
 lib/credentials/service-account.json
-*.json
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
