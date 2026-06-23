@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { Copy, Check, AlertCircle, ExternalLink, Calendar, User, ArrowUpRight } from "lucide-react";
-// Đổi sang đường dẫn tương đối để đảm bảo an toàn tuyệt đối khi đứng ở thư mục gốc app/
-import KpiCard from "../components/KpiCard";
-import WeeklyChart from "../components/WeeklyChart";
+// ĐÃ SỬA: Thay thế bằng kí tự Alias định vị chính xác linh kiện ở mọi cấp thư mục
+import KpiCard from "@/components/KpiCard";
+import WeeklyChart from "@/components/WeeklyChart";
 
 interface ProjectItem {
   name: string;
