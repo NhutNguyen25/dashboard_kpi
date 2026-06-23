@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { Copy, Check, AlertCircle, ExternalLink, Calendar, User, ArrowUpRight } from "lucide-react";
-import KpiCard from "@/components/KpiCard";
-import WeeklyChart from "@/components/WeeklyChart";
+// Đổi sang đường dẫn tương đối để đảm bảo an toàn tuyệt đối khi đứng ở thư mục gốc app/
+import KpiCard from "../components/KpiCard";
+import WeeklyChart from "../components/WeeklyChart";
 
 interface ProjectItem {
   name: string;
@@ -54,7 +55,7 @@ const MOCK_WEEKLY_ACTIVITY = [
   { name: "W3", Completed: 4, Planned: 6 },
   { name: "W4", Completed: 6, Planned: 7 },
   { name: "W5", Completed: 5, Planned: 5 },
-  { name: "W6", Completed: 7, Planned: 8 }
+  { name: "W6", Completed: 7, Pattern: 8, Planned: 8 }
 ];
 
 export default function YearsReportsPage() {
@@ -66,7 +67,6 @@ export default function YearsReportsPage() {
   const [needsShare, setNeedsShare] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
 
-  // Cấu trúc danh sách các năm và customer trống (Đã fix hoàn toàn lỗi trùng Key cho Vercel)
   const yearlyStructure = [
     {
       year: "2024",
@@ -169,7 +169,7 @@ export default function YearsReportsPage() {
   }
 
   return (
-    <>
+    <div className="p-6 max-w-7xl mx-auto w-full">
       {/* Tiêu đề */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -297,7 +297,7 @@ export default function YearsReportsPage() {
         </div>
       </div>
 
-      {/* ALL YEARS REPORT BOX BỔ SUNG */}
+      {/* ALL YEARS REPORT BOX */}
       <div className="bg-[#121318] rounded-xl border border-zinc-800/80 overflow-hidden">
         <div className="p-4 border-b border-zinc-800/60 flex items-center justify-between">
           <div>
@@ -312,7 +312,6 @@ export default function YearsReportsPage() {
               key={item.year} 
               className="bg-[#16171d] rounded-xl p-3 border border-zinc-800/80 hover:border-zinc-700/60 transition-all"
             >
-              {/* Tiêu đề Năm kèm Icon */}
               <div className="flex items-center justify-between border-b border-zinc-800/60 pb-2 mb-3">
                 <div className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-blue-500" />
@@ -321,7 +320,6 @@ export default function YearsReportsPage() {
                 <ArrowUpRight className="w-3.5 h-3.5 text-zinc-600" />
               </div>
 
-              {/* Danh sách Khách hàng rỗng theo năm */}
               <div className="space-y-2">
                 {item.customers.map((customer) => (
                   <div 
@@ -337,7 +335,6 @@ export default function YearsReportsPage() {
                         <p className="text-[9px] text-zinc-600">-- tasks</p>
                       </div>
                     </div>
-
                     <span className="text-[9px] px-1.5 py-0.5 rounded-md font-medium bg-zinc-800 text-zinc-500 border border-zinc-700/30">
                       No Data
                     </span>
@@ -348,6 +345,6 @@ export default function YearsReportsPage() {
           ))}
         </div>
       </div>
-    </>
+    </div>
   );
 }
