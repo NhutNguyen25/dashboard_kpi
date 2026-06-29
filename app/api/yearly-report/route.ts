@@ -1,8 +1,9 @@
-import { getSheetData } from "@/lib/db";
+import { getSheetsClient } from "@/lib/db";
 import { NextResponse, type NextRequest } from "next/server";
 
 const SPREADSHEET_ID = "1IwHmlrjM51-wsQi8oz3OSWImKaEuWEZws63oyP6iy9M";
 const SHEET_NAME = "Plan Link2";
+
 
 async function getFullReport(rawData: string[][]) {
     const projects = [];
@@ -94,9 +95,14 @@ async function getProjectDetails(rawData: string[][], projectName: string) {
 
 export async function GET(request: NextRequest) {
   try {
-    const rawData = await getSheetData(SHEET_NAME, SPREADSHEET_ID);
+    const sheets = await getSheetsClient();
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: SHEET_NAME,
+    });
+    const rawData = response.data.values as string[][] | null | undefined;
 
-    if (!rawData || rawData.length < 2) {
+    if (!rawData || rawData.length === 0) {
       return NextResponse.json({
         success: true,
         data: { projects: [], summary: { totalTasks: 0 }, weeklyActivity: [] }
