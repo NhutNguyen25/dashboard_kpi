@@ -1,0 +1,164 @@
+/* Nạp cấu hình Tailwind v4 làm tài liệu tham khảo cho CSS Module */
+
+@reference "tailwindcss";
+@reference "../../globals.css";
+
+/* ==========================================================================
+   === Main Page: Filter & Action Bar ===
+   ========================================================================== */
+.actionBar {
+    @apply bg-[#121318] p-4 rounded-xl border border-zinc-800/60 flex flex-col gap-4 items-center justify-between;
+}
+
+.searchWrapper {
+    @apply relative w-full;
+}
+
+.searchInput {
+    @apply w-full bg-[#0d0e12] border border-zinc-800/80 rounded-lg pl-9 pr-4 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-blue-500/60 transition-colors;
+}
+
+.actionsContainer {
+    @apply flex flex-col items-center gap-2 w-full shrink-0;
+}
+
+.actionButton {
+    @apply w-full flex items-center justify-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors shrink-0 cursor-pointer;
+}
+
+.primaryButton {
+    @apply bg-blue-600 hover:bg-blue-500 text-white;
+}
+
+.secondaryButton {
+    @apply bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700/80;
+}
+
+/* ==========================================================================
+   === Dropdown Menu ===
+   ========================================================================== */
+.dropdownMenu {
+    @apply absolute z-50 top-full right-0 mt-2 w-48 bg-[#16171d] border border-zinc-800 rounded-lg shadow-xl p-1.5;
+}
+
+.dropdownMenuItem {
+    @apply w-full flex items-center gap-2 px-3 py-2 text-left text-xs text-zinc-300 hover:bg-zinc-800/50 rounded-md;
+}
+
+.dropdownDivider {
+    @apply h-px bg-zinc-800 my-1;
+}
+
+/* ==========================================================================
+   === Modals ===
+   ========================================================================== */
+.modalOverlay {
+    @apply fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50;
+}
+
+.modalContent {
+    @apply bg-[#16171d] border border-zinc-800/80 rounded-xl shadow-2xl w-full max-w-lg m-4;
+}
+
+.modalHeader {
+    @apply p-5 border-b border-zinc-800/60 flex justify-between items-center;
+}
+
+.modalTitle {
+    @apply text-base font-semibold text-zinc-100;
+}
+
+.modalCloseButton {
+    @apply text-zinc-500 hover:text-zinc-200;
+}
+
+.modalBody {
+    @apply p-6 min-h-[200px];
+}
+
+.modalFooter {
+    @apply p-4 bg-[#121318] border-t border-zinc-800/60 rounded-b-xl flex justify-between items-center min-h-[60px];
+}
+
+.modalMessage {
+    @apply text-xs;
+}
+
+.modalMessageSuccess {
+    @apply text-emerald-400;
+}
+
+.modalMessageError {
+    @apply text-red-400;
+}
+
+/* ==========================================================================
+   === Combobox (Searchable Dropdown) ===
+   ========================================================================== */
+.comboboxWrapper {
+    @apply relative;
+}
+
+.comboboxInput {
+    @apply w-full bg-[#0d0e12] border border-zinc-700/80 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500/60 transition-colors;
+}
+
+.suggestionList {
+    @apply absolute z-50 w-full mt-1 bg-[#121318] border border-zinc-800 rounded-lg shadow-xl max-h-60 overflow-y-auto;
+}
+
+.suggestionItem {
+    @apply w-full text-left px-3 py-2 text-sm text-zinc-200 hover:bg-zinc-800/50;
+}
+
+.suggestionEmpty {
+    @apply px-3 py-4 text-center text-xs text-zinc-500;
+}
+
+/* ==========================================================================
+   === Form Specifics inside Modals ===
+   ========================================================================== */
+.formGroup {
+    @apply flex items-end gap-3 pt-2;
+}
+
+.formLabel {
+    @apply text-xs text-zinc-400 block mb-1.5;
+}
+
+/* ==========================================================================
+   === Responsive Breakpoints ===
+   ========================================================================== */
+
+@media (min-width: 640px) {
+    .actionsContainer {
+        @apply flex-row;
+    }
+    .actionButton {
+        @apply w-auto;
+    }
+}
+
+@media (min-width: 1024px) {
+    .actionBar {
+        @apply flex-row;
+    }
+    .searchWrapper {
+        @apply flex-1;
+    }
+    .actionsContainer {
+        @apply w-auto;
+    }
+}
+
+@media (min-width: 768px) {
+    .actionBar {
+        @apply flex-row;
+    }
+    .searchWrapper {
+        @apply flex-1;
+    }
+    .actionsContainer {
+        @apply w-auto;
+    }
+}

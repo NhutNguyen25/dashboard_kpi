@@ -1,92 +1,121 @@
 import { getSheetData } from "@/lib/db";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 const SPREADSHEET_ID = "1IwHmlrjM51-wsQi8oz3OSWImKaEuWEZws63oyP6iy9M";
+const SHEET_NAME = "Plan Link2";
 
-export async function GET() {
+async function getFullReport(rawData: string[][]) {
+    const projects = [];
+    let totalMandays = 0;
+    let totalKpi = 0;
+    const uniqueCustomers = new Set<string>();
+    const uniqueYears = new Set<string>();
+    const KPI_DONE_COL = 9;     // Cột J
+    const KPI_EST_COL = 10;     // Cột K
+    for (let i = 1; i < rawData.length; i++) {
+        const row = rawData[i];
+        const customerId = row[1];
+        const projectId = row[2];
+        const year = row[3];
+
+        if (customerId && projectId && year) {
+            const yearStr = year.toString().trim();
+            const yearMatch = yearStr.match(/^(\d{4})/);
+            const parsedYear = yearMatch ? yearMatch[1] : "Khác";
+
+            projects.push({
+                year: parsedYear,
+                customerId: customerId.toString().trim(),
+                projectId: projectId.toString().trim(),
+            });
+
+            // Thêm vào Set để đếm số lượng duy nhất
+            uniqueCustomers.add(customerId.toString().trim());
+            if (parsedYear !== "Khác") {
+                uniqueYears.add(parsedYear);
+            }
+        }
+
+        // Tính tổng KPI DONE (Cột J)
+        const kpiDoneValue = parseFloat(row[KPI_DONE_COL]);
+        if (!isNaN(kpiDoneValue)) {
+            totalMandays += kpiDoneValue;
+        }
+
+        // Tính tổng KPI EST (Cột K)
+        const kpiEstValue = parseFloat(row[KPI_EST_COL]);
+        if (!isNaN(kpiEstValue)) {
+            totalKpi += kpiEstValue;
+        }
+    }
+
+    const summary = {
+        totalTasks: projects.length,
+        totalCustomers: uniqueCustomers.size,
+        totalYears: uniqueYears.size,
+        totalMandays: totalMandays,
+        totalKpi: totalKpi,
+        onTimeRate: "N/A",
+        qualityScore: "N/A"
+    };
+
+    return NextResponse.json({
+        success: true,
+        data: {
+            projects,
+            summary,
+            weeklyActivity: []
+        }
+    });
+}
+
+async function getProjectDetails(rawData: string[][], projectName: string) {
+    const PROJECT_NAME_COL = 2; // C
+    const PROCESS_COL = 6;      // G
+    const KPI_DONE_COL = 9;     // J
+    const KPI_EST_COL = 10;     // K
+    const STATUS_COL = 11;      // L
+
+    const projectRow = rawData.find(row => row[PROJECT_NAME_COL] === projectName);
+
+    if (!projectRow) {
+        return NextResponse.json({ success: false, error: `Project "${projectName}" not found` }, { status: 404 });
+    }
+
+    const projectDetails = {
+        kpiEst: projectRow[KPI_EST_COL] || "N/A",
+        kpiDone: projectRow[KPI_DONE_COL] || "N/A",
+        status: projectRow[STATUS_COL] || "N/A",
+        process: projectRow[PROCESS_COL] || "N/A",
+    };
+
+    return NextResponse.json({ success: true, data: projectDetails });
+}
+
+export async function GET(request: NextRequest) {
   try {
-    const rawData = await getSheetData("Plan Link2", SPREADSHEET_ID);
+    const rawData = await getSheetData(SHEET_NAME, SPREADSHEET_ID);
 
     if (!rawData || rawData.length < 2) {
       return NextResponse.json({
         success: true,
-        data: {
-          projects: [],
-          summary: {
-            totalTasks: 0,
-            totalMandays: 0,
-            totalKpi: 0,
-            lateTasks: 0,
-            onTimeRate: "0%",
-            qualityScore: "0.0"
-          },
-          weeklyActivity: []
-        }
+        data: { projects: [], summary: { totalTasks: 0 }, weeklyActivity: [] }
       });
     }
 
-    const projects = [];
+    const searchParams = request.nextUrl.searchParams;
+    const projectParam = searchParams.get('project');
 
-    for (let i = 1; i < rawData.length; i++) {
-      const row = rawData[i];
-      // Lấy dữ liệu từ các cột: B (CUSTOMID), C (PROJECTID), D (YEAR_BID)
-      const customerId = row[1];
-      const projectId = row[2];
-      const year = row[3];
-
-      if (customerId && projectId && year) {
-        const yearStr = year.toString().trim();
-        const yearMatch = yearStr.match(/^(\d{4})/);
-        const parsedYear = yearMatch ? yearMatch[1] : "Khác";
-
-        projects.push({
-          year: parsedYear,
-          customerId: customerId.toString().trim(),
-          projectId: projectId.toString().trim(),
-        });
-      }
+    if (projectParam) {
+        return await getProjectDetails(rawData, projectParam);
+    } else {
+        return await getFullReport(rawData);
     }
-
-    // Tính toán summary động dựa trên dữ liệu sheet thực tế
-    const totalTasks = projects.length;
-    const totalMandays = totalTasks * 12; // Ước lượng trung bình 12 mandays mỗi dự án
-    const totalKpi = Math.round(totalTasks * 0.9);
-    const lateTasks = Math.max(0, Math.round(totalTasks * 0.08));
-    const onTimeRate = totalTasks > 0 ? `${Math.round(((totalTasks - lateTasks) / totalTasks) * 100)}%` : "100%";
-
-    const summary = {
-      totalTasks,
-      totalMandays,
-      totalKpi,
-      lateTasks,
-      onTimeRate,
-      qualityScore: "4.7"
-    };
-
-    // Tạo weeklyActivity mô phỏng
-    const weeklyActivity = [
-      { name: "W1", Completed: Math.round(totalTasks * 0.15), Planned: Math.round(totalTasks * 0.2) },
-      { name: "W2", Completed: Math.round(totalTasks * 0.3), Planned: Math.round(totalTasks * 0.35) },
-      { name: "W3", Completed: Math.round(totalTasks * 0.45), Planned: Math.round(totalTasks * 0.5) },
-      { name: "W4", Completed: Math.round(totalTasks * 0.6), Planned: Math.round(totalTasks * 0.6) },
-      { name: "W5", Completed: Math.round(totalTasks * 0.75), Planned: Math.round(totalTasks * 0.8) },
-      { name: "W6", Completed: Math.round(totalTasks * 0.9), Planned: Math.round(totalTasks * 0.95) }
-    ];
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        projects,
-        summary,
-        weeklyActivity
-      }
-    });
 
   } catch (error: unknown) {
     const err = error as { message?: string; status?: number; code?: number };
     console.error("Yearly report API error:", error);
     
-    // Kiểm tra lỗi phân quyền
     const isPermissionError = 
       err.message?.includes("permission") || 
       err.message?.includes("403") || 
@@ -99,7 +128,7 @@ export async function GET() {
         needsShare: isPermissionError,
         error: err.message || "Failed to fetch yearly report data" 
       },
-      { status: isPermissionError ? 200 : 500 } // Trả về 200 kèm theo cờ needsShare để client hiển thị fallback UI
+      { status: isPermissionError ? 200 : 500 }
     );
   }
 }

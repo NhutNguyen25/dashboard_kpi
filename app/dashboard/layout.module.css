@@ -1,0 +1,150 @@
+@reference "tailwindcss";
+@reference "../globals.css";
+
+/* ==========================================================================
+   === Main Layout Structure ===
+   ========================================================================== */
+.rootLayout {
+    @apply flex h-screen w-screen overflow-hidden bg-[#0d0e12] text-zinc-100 antialiased;
+}
+
+.mainContentWrapper {
+    @apply flex-1 flex flex-col h-full overflow-hidden;
+}
+
+.mainContent {
+    @apply flex-1 p-4 sm:p-6 overflow-y-auto bg-[#0d0e12];
+    &::-webkit-scrollbar {
+        @apply hidden;
+    }
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.mainContentInner {
+    @apply max-w-5xl mx-auto w-full;
+}
+
+/* ==========================================================================
+   === Sidebar & Mobile Navigation ===
+   ========================================================================== */
+.sidebarOverlay {
+    @apply fixed inset-0 bg-black/50 z-40;
+}
+
+.sidebar {
+    @apply fixed inset-y-0 left-0 z-50 w-72 border-r border-zinc-800/80 bg-[#0d0e12] p-4 flex flex-col justify-between shrink-0 h-full transform transition-transform duration-300 ease-in-out;
+}
+
+.sidebarClosed {
+    @apply -translate-x-full;
+}
+
+.sidebarOpen {
+    @apply translate-x-0;
+}
+
+.sidebarContent {
+    @apply flex-1 overflow-y-auto pr-1;
+    &::-webkit-scrollbar {
+        @apply hidden;
+    }
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.sidebarHeader {
+    @apply flex items-center gap-2.5 mb-6 px-1;
+}
+
+.sidebarFooter {
+    @apply flex items-center gap-2.5 pt-3.5 border-t border-zinc-800/80 px-1;
+}
+
+.mobileHeader {
+    @apply flex items-center justify-between p-4 border-b border-zinc-800 bg-[#0d0e12] shrink-0;
+}
+
+/* ==========================================================================
+   === Sidebar Menu & Tree Structure ===
+   ========================================================================== */
+.menuItem {
+    @apply w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[12px] font-medium transition-all text-zinc-500 hover:bg-zinc-900/40 hover:text-zinc-300;
+}
+
+.menuItemActive {
+    @apply bg-zinc-800/90 text-zinc-100 shadow-sm border border-zinc-700/30;
+}
+
+.menuItemIconActive {
+    @apply text-blue-500;
+}
+
+.treeRoot {
+    @apply space-y-0.5 select-none;
+}
+
+.treeNode {
+    @apply w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-[12px] font-medium text-zinc-500 transition-colors;
+}
+
+.treeNodeLink {
+    @apply flex items-center gap-2.5 min-w-0;
+}
+
+.treeNodeLinkActive {
+    @apply text-blue-400 font-semibold;
+}
+
+.treeNodeLinkInactive {
+    @apply hover:text-zinc-300;
+}
+
+.treeNodeIcon {
+    @apply text-zinc-500;
+}
+
+.treeNodeIconActive {
+    @apply text-blue-400;
+}
+
+.treeToggleButton {
+    @apply p-1 hover:bg-zinc-800/80 rounded text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer shrink-0;
+}
+
+.treeLevel2Container {
+    @apply space-y-0.5 pl-2 ml-4;
+}
+
+.treeLevel2Node {
+    @apply w-full flex items-center justify-between px-2 py-1 rounded text-[11px] font-medium text-zinc-400 transition-colors;
+}
+
+.treeLevel3Container {
+    @apply space-y-0.5 pl-3 ml-3;
+}
+
+.treeLevel3Link {
+    @apply w-full flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-medium transition-colors text-zinc-500 hover:bg-zinc-800/50 hover:text-zinc-300;
+}
+
+.treeLevel3LinkActive {
+    @apply bg-zinc-800/70 text-zinc-200;
+}
+
+.treeLevel3Icon {
+    @apply text-purple-400/60;
+}
+
+.treeLevel3IconActive {
+    @apply text-purple-400;
+}
+
+/* ==========================================================================
+   === Responsive Breakpoints ===
+   ========================================================================== */
+@media (min-width: 768px) {
+    .sidebarOverlay { @apply hidden; }
+    .sidebar { @apply relative translate-x-0; }
+    .mobileHeader { @apply hidden; }
+}

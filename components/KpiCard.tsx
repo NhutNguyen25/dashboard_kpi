@@ -15,7 +15,7 @@ export default function KpiCard({ title, value, percentage, progress, footer }: 
       <div>
         <p className="text-[11px] font-medium text-zinc-500">{title}</p>
         <div className="flex items-baseline justify-between mt-2.5">
-          <span className="text-xl font-bold text-zinc-100 tracking-tight">{value}</span>
+          <span className="text-lg font-bold text-zinc-100 tracking-tight">{value}</span>
           <span className="text-[10px] font-semibold text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded">
             {percentage}
           </span>
