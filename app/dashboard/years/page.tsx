@@ -390,10 +390,10 @@ function YearsReportsContent() {
     );
   }
 
-  if (selectedProject) {
+if (selectedProject) {
     return (
       <div className="space-y-6">
-        {/* Tiêu đề & Back button */}
+        {/* Tiêu đề & Nút Trở lại */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
@@ -406,30 +406,6 @@ function YearsReportsContent() {
               <h1 className="text-xl font-semibold text-zinc-100 tracking-tight truncate" title={selectedProject}>{selectedProject}</h1>
               <p className="text-[11px] text-zinc-500 mt-0.5">Chi tiết chỉ số KPI & tiến độ dự án từ Google Sheet</p>
             </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={handleOpenEditModal}
-              className="flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[11px] px-3 py-1.5 rounded-lg border border-zinc-700/80 transition-all font-medium"
-            >
-              <Pencil size={12} /> Sửa
-            </button>
-            <button
-              onClick={async () => {
-                if (confirm(`Bạn có chắc chắn muốn xóa dự án "${selectedProject}" không?`)) {
-                  const res = await fetch('/api/delete-project', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId: selectedProject }) });
-                  const result = await res.json();
-                  if (result.success) {
-                    alert('Xóa thành công!');
-                    router.push('/dashboard/years');
-                    router.refresh();
-                  } else { alert(`Lỗi khi xóa: ${result.error}`); }
-                }
-              }}
-              className="flex items-center gap-1.5 bg-red-950/40 hover:bg-red-950/80 text-red-400 text-[11px] px-3 py-1.5 rounded-lg border border-red-900/50 transition-all font-medium"
-            >
-              <Trash2 size={12} /> Xóa
-            </button>
           </div>
         </div>
 
@@ -446,38 +422,38 @@ function YearsReportsContent() {
                 <p className="text-xs mt-1">{detailsError}</p>
             </div>
         )}
-{projectDetails && !detailsLoading && (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard 
-            title="PROCESS" 
-            value={projectDetails.process} 
-            percentage="Progress"
-            progress={parseFloat(projectDetails.process) || 0}
-            footer="Dữ liệu từ cột G" 
-        />
-        <KpiCard 
-            title="KPI DONE" 
-            value={projectDetails.kpiDone} 
-            percentage="Done"
-            progress={100}
-            footer="Dữ liệu từ cột J" 
-        />
-        <KpiCard 
-            title="KPI EST" 
-            value={projectDetails.kpiEst} 
-            percentage="Estimate"
-            progress={100}
-            footer="Dữ liệu từ cột K" 
-        />
-        <KpiCard 
-            title="STATUS" 
-            value={projectDetails.status} 
-            percentage="State"
-            progress={100}
-            footer="Dữ liệu từ cột L" 
-        />
-    </div>
-)}
+        {projectDetails && !detailsLoading && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <KpiCard 
+                    title="PROCESS" 
+                    value={projectDetails.process} 
+                    percentage="Progress"
+                    progress={parseFloat(projectDetails.process) || 0}
+                    footer="Dữ liệu từ cột G" 
+                />
+                <KpiCard 
+                    title="KPI DONE" 
+                    value={projectDetails.kpiDone} 
+                    percentage="Done"
+                    progress={100}
+                    footer="Dữ liệu từ cột J" 
+                />
+                <KpiCard 
+                    title="KPI EST" 
+                    value={projectDetails.kpiEst} 
+                    percentage="Estimate"
+                    progress={100}
+                    footer="Dữ liệu từ cột K" 
+                />
+                <KpiCard 
+                    title="STATUS" 
+                    value={projectDetails.status} 
+                    percentage="State"
+                    progress={100}
+                    footer="Dữ liệu từ cột L" 
+                />
+            </div>
+        )}
       </div>
     );
   }
