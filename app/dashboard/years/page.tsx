@@ -15,17 +15,38 @@ import {
   ChevronDown,
   ChevronRight,
   TrendingUp,
+  Pencil,
+  Trash2,
+  File,
+  Layers,
   Award,
   Clock,
   Briefcase,
   PlusCircle,
-  Pencil,
-  Trash2,
-  File,
-  Layers
 } from "lucide-react";
 import KpiCard from "@/components/KpiCard";
 import WeeklyChart from "@/components/WeeklyChart";
+import EditProjectModal from "./components/EditProjectModal";
+
+const STATUS_OPTIONS = [
+  "Tư vấn và báo giá",
+  "Làm Specs, làm thầu",
+  "Hoàn thành thầu",
+  "LAB/PoC",
+  "Đang triển khai",
+  "Đã nghiệm thu",
+  "MA",
+  "Chưa có"
+];
+
+const ICONS = {
+  Pencil,
+  Trash2,
+  File,
+  Layers,
+  PlusCircle,
+  Briefcase
+};
 
 const SERVICE_ACCOUNT_EMAIL = "poptech-pm@poptech-pm.iam.gserviceaccount.com";
 
@@ -33,6 +54,9 @@ interface ProjectData {
   year: string;
   customerId: string;
   projectId: string;
+  contract: string;
+  status: string;
+  sale: string;
 }
 
 interface EditingProjectData {
@@ -40,6 +64,9 @@ interface EditingProjectData {
   year: string;
   customerId: string;
   projectId: string;
+  contract: string;
+  status: string;
+  sale: string;
 }
 
 interface SummaryData {
@@ -47,6 +74,8 @@ interface SummaryData {
   totalMandays: number | string;
   totalCustomers: number | string;
   totalYears: number | string;
+  totalContracts: number | string;
+  totalSales: number | string;
   totalKpi: number | string;
   onTimeRate: string;
   qualityScore: string;
@@ -57,6 +86,8 @@ interface ProjectDetailsData {
   kpiDone: string;
   status: string;
   process: string;
+  contract: string;
+  sale: string;
 }
 
 
@@ -91,6 +122,7 @@ function YearsReportsContent() {
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedYear, setSelectedYear] = useState<string>("All");
+  const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [expandedCustomers, setExpandedCustomers] = useState<Record<string, boolean>>({});
   const [expandedYears, setExpandedYears] = useState<Record<string, boolean>>({});
 
@@ -101,11 +133,6 @@ function YearsReportsContent() {
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   // State for "Edit Project" Modal
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<EditingProjectData | null>(null);
-  const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
-  const [editSubmitMessage, setEditSubmitMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-
   // State for Customer Combobox in Add Modal
   const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
   const customerComboboxRef = useRef<HTMLDivElement>(null);
@@ -114,6 +141,10 @@ function YearsReportsContent() {
   const [isStructureMenuOpen, setIsStructureMenuOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<null | 'add-year' | 'delete-year' | 'add-customer' | 'delete-customer'>(null);
   const structureMenuRef = useRef<HTMLDivElement>(null);
+
+  // State for Edit Project Modal (using the shared component)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<any>(null);
 
   const openModal = (modalName: typeof activeModal) => {
     setActiveModal(modalName);
@@ -187,89 +218,66 @@ function YearsReportsContent() {
     }
   };
 
-  const handleOpenEditModal = () => {
-    if (!selectedProject) return;
-    const projectToEdit = projects.find(p => p.projectId === selectedProject);
-    if (projectToEdit) {
-      setEditingProject({
-        originalProjectId: projectToEdit.projectId,
-        year: projectToEdit.year,
-        customerId: projectToEdit.customerId,
-        projectId: projectToEdit.projectId,
-      });
-      setEditSubmitMessage(null);
-      setIsEditModalOpen(true);
-    } else {
-      alert("Không tìm thấy thông tin dự án để sửa.");
-    }
+  // Function to open the Edit Project Modal
+const handleOpenEditModal = (projectToEdit: ProjectData) => {
+    setEditingProject(projectToEdit); //
+    setIsEditModalOpen(true);
   };
-
-  const handleEditProject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingProject) return;
-
-    setIsSubmittingEdit(true);
-    setEditSubmitMessage(null);
-
-    try {
-      const res = await fetch('/api/edit-project', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          originalProjectId: editingProject.originalProjectId,
-          newProjectData: { year: editingProject.year, customerId: editingProject.customerId, projectId: editingProject.projectId }
-        }),
-      });
-      const result = await res.json();
-      if (result.success) {
-        setEditSubmitMessage({ type: 'success', text: 'Cập nhật thành công! Đang làm mới...' });
-        setTimeout(() => {
-          setIsEditModalOpen(false);
-          router.push(`/dashboard/years?project=${encodeURIComponent(editingProject.projectId)}`);
-          router.refresh();
-        }, 1500);
-      } else {
-        setEditSubmitMessage({ type: 'error', text: result.error || 'Có lỗi xảy ra.' });
-      }
-    } catch (error) {
-      setEditSubmitMessage({ type: 'error', text: (error as Error).message });
-    } finally {
-      setIsSubmittingEdit(false);
-    }
+  const handleSaveSuccess = () => {
+    router.refresh();
   };
-
-
 
   // Effect to fetch details when a project is selected
   useEffect(() => {
     if (!selectedProject) {
-        setProjectDetails(null);
-        setDetailsError(null);
-        return;
+      setProjectDetails(null);
+      setDetailsError(null);
+      return;
     }
 
     async function fetchDetails() {
-        setDetailsLoading(true);
-        setDetailsError(null);
-        try {
-            const res = await fetch(`/api/yearly-report?project=${encodeURIComponent(selectedProject || "")}`);
-            const json = await res.json();
-            if (json.success) {
-                setProjectDetails(json.data);
-            } else {
-                setDetailsError(json.error || "Failed to fetch project details.");
-                setProjectDetails(null);
-            }
-        } catch (err) {
-            setDetailsError(err instanceof Error ? err.message : "Network error fetching details.");
-            setProjectDetails(null);
-        } finally {
-            setDetailsLoading(false);
+      setDetailsLoading(true);
+      setDetailsError(null);
+      try {
+        const res = await fetch(`/api/yearly-report?project=${encodeURIComponent(selectedProject || "")}`);
+        const json = await res.json();
+        if (json.success) {
+          setProjectDetails(json.data);
+        } else {
+          setDetailsError(json.error || "Failed to fetch project details.");
+          setProjectDetails(null);
         }
+      } catch (err) {
+        setDetailsError(err instanceof Error ? err.message : "Network error fetching details.");
+        setProjectDetails(null);
+      } finally {
+        setDetailsLoading(false);
+      }
     }
 
     fetchDetails();
   }, [selectedProject]);
+
+  const handleStatusChange = async (projectId: string, newStatus: string) => {
+    // Optimistic UI update
+    setProjects(prevProjects => prevProjects.map(p =>
+      p.projectId === projectId ? { ...p, status: newStatus } : p
+    ));
+
+    try {
+      await fetch('/api/yearly-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, newStatus }),
+      });
+      // Optionally show a success toast
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      // Revert UI on error
+      router.refresh(); // Simple way to revert
+      // Optionally show an error toast
+    }
+  };
 
   // Effect to handle clicks outside the customer combobox
   useEffect(() => {
@@ -293,9 +301,7 @@ function YearsReportsContent() {
   };
 
   // Group and Filter logic
-  const uniqueYears = Array.from(new Set(projects.map((p) => p.year))).filter(
-    (year) => year !== "Khác"
-  );
+  const uniqueYears = Array.from(new Set(projects.map((p) => p.year)));
   const years = ["All", ...uniqueYears].sort((a, b) =>
     a === "All" ? -1 : b === "All" ? 1 : b.localeCompare(a));
 
@@ -303,12 +309,13 @@ function YearsReportsContent() {
     const matchesSearch =
       p.customerId.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.projectId.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesYear = selectedYear === "All" || p.year === selectedYear;
-    return matchesSearch && matchesYear;
+    const matchesYear = selectedYear === 'All' || p.year === selectedYear;
+    const matchesStatus = selectedStatus === 'All' || p.status === selectedStatus;
+    return matchesSearch && matchesYear && matchesStatus;
   });
 
   // Group structure: Year -> Customer -> Project list
-  const groupedData: Record<string, Record<string, string[]>> = {};
+  const groupedData: Record<string, Record<string, ProjectData[]>> = {};
 
   filteredProjects.forEach((p) => {
     if (!groupedData[p.year]) {
@@ -317,8 +324,8 @@ function YearsReportsContent() {
     if (!groupedData[p.year][p.customerId]) {
       groupedData[p.year][p.customerId] = [];
     }
-    if (!groupedData[p.year][p.customerId].includes(p.projectId)) {
-      groupedData[p.year][p.customerId].push(p.projectId);
+    if (!groupedData[p.year][p.customerId].find(proj => proj.projectId === p.projectId)) {
+      groupedData[p.year][p.customerId].push(p);
     }
   });
 
@@ -335,6 +342,20 @@ function YearsReportsContent() {
       [year]: !prev[year],
     }));
   };
+
+  const getStatusBadgeStyle = (status: string) => {
+    const styles: { [key: string]: React.CSSProperties } = {
+      "Tư vấn và báo giá": { backgroundColor: "#FDD2C9", color: "#A61C18" },
+      "Làm Specs, làm thầu": { backgroundColor: "#FFD1B3", color: "#7D3C16" },
+      "Hoàn thành thầu": { backgroundColor: "#FFEFA2", color: "#5F4513" },
+      "LAB/PoC": { backgroundColor: "#D6ECD0", color: "#1E753B" },
+      "Đang triển khai": { backgroundColor: "#CBE6F8", color: "#1256A4" },
+      "Đã nghiệm thu": { backgroundColor: "#D1FAE5", color: "#065F46" },
+      "MA": { backgroundColor: "#E5E7EB", color: "#374151" },
+    };
+    return styles[status] || {};
+  };
+
 
   // Chuẩn bị dữ liệu động cho Form "Thêm mới"
   const uniqueYearsForForm = [...new Set(projects.map(p => p.year))]
@@ -372,14 +393,33 @@ function YearsReportsContent() {
           <div className="p-2 space-y-1">
             {customerProjects.length > 0 ? (
               customerProjects.map(project => (
-                <Link
+                <div
                   key={project.projectId}
-                  href={`/dashboard/years?project=${encodeURIComponent(project.projectId)}`}
-                  className="flex items-center gap-2.5 p-2.5 rounded-lg hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                  className="flex items-center justify-between p-2.5 rounded-lg hover:bg-zinc-800/50 transition-colors group"
                 >
-                  <File size={14} className="text-blue-500 shrink-0" />
-                  <span className="text-sm font-medium text-zinc-200">{project.projectId}</span>
-                </Link>
+                  <Link
+                    href={`/dashboard/years?project=${encodeURIComponent(project.projectId)}`}
+                    className="flex items-center gap-2.5 min-w-0 flex-1"
+                  >
+                    <ICONS.File size={14} className="text-blue-500 shrink-0" />
+                    <span className="text-sm font-medium text-zinc-200 truncate group-hover:text-zinc-100">{project.projectId}</span>
+                  </Link>
+                  <div className="flex items-center gap-2 shrink-0 ml-4 pl-2">
+                    {project.sale && (
+                      <span className="px-2 py-0.5 text-[9px] font-medium rounded-full bg-zinc-900 text-zinc-400 border border-zinc-700/50" title={`Sale: ${project.sale}`}>{project.sale}</span>
+                    )}
+                    {project.status && project.status !== 'Chưa có' && (
+                      <span className="px-2 py-0.5 text-[9px] font-medium rounded-full" style={getStatusBadgeStyle(project.status)} title={`Trạng thái: ${project.status}`}>{project.status}</span>
+                    )}
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOpenEditModal(project); }}
+                      className="p-1 rounded-md text-zinc-500 hover:text-zinc-100 hover:bg-zinc-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Chỉnh sửa dự án"
+                    >
+                      <ICONS.Pencil size={12} />
+                    </button>
+                  </div>
+                </div>
               ))
             ) : (
               <p className="text-center text-xs text-zinc-500 p-8">Không có dự án nào cho khách hàng này trong năm {selectedYearParam}.</p>
@@ -390,7 +430,7 @@ function YearsReportsContent() {
     );
   }
 
-if (selectedProject) {
+  if (selectedProject) {
     return (
       <div className="space-y-6">
         {/* Tiêu đề & Nút Trở lại */}
@@ -411,48 +451,62 @@ if (selectedProject) {
 
         {/* Conditional rendering for details */}
         {detailsLoading && (
-            <div className="flex justify-center items-center h-40 border border-dashed border-zinc-800 rounded-xl">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                <span className="text-zinc-400">Đang tải chi tiết dự án...</span>
-            </div>
+          <div className="flex justify-center items-center h-40 border border-dashed border-zinc-800 rounded-xl">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+            <span className="text-zinc-400">Đang tải chi tiết dự án...</span>
+          </div>
         )}
         {detailsError && (
-            <div className="bg-red-950/20 border border-red-900/50 rounded-xl p-4 text-red-400">
-                <h4 className="font-semibold text-red-200">Lỗi tải chi tiết dự án</h4>
-                <p className="text-xs mt-1">{detailsError}</p>
-            </div>
+          <div className="bg-red-950/20 border border-red-900/50 rounded-xl p-4 text-red-400">
+            <h4 className="font-semibold text-red-200">Lỗi tải chi tiết dự án</h4>
+            <p className="text-xs mt-1">{detailsError}</p>
+          </div>
         )}
         {projectDetails && !detailsLoading && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <KpiCard 
-                    title="PROCESS" 
-                    value={projectDetails.process} 
-                    percentage="Progress"
-                    progress={parseFloat(projectDetails.process) || 0}
-                    footer="Dữ liệu từ cột G" 
-                />
-                <KpiCard 
-                    title="KPI DONE" 
-                    value={projectDetails.kpiDone} 
-                    percentage="Done"
-                    progress={100}
-                    footer="Dữ liệu từ cột J" 
-                />
-                <KpiCard 
-                    title="KPI EST" 
-                    value={projectDetails.kpiEst} 
-                    percentage="Estimate"
-                    progress={100}
-                    footer="Dữ liệu từ cột K" 
-                />
-                <KpiCard 
-                    title="STATUS" 
-                    value={projectDetails.status} 
-                    percentage="State"
-                    progress={100}
-                    footer="Dữ liệu từ cột L" 
-                />
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <KpiCard
+              title="CONTRACT"
+              value={projectDetails.contract}
+              percentage="ID"
+              progress={100}
+              footer="Dữ liệu từ cột E"
+            />
+            <KpiCard
+              title="PROCESS"
+              value={projectDetails.process}
+              percentage="Progress"
+              progress={parseFloat(projectDetails.process) || 0}
+              footer="Dữ liệu từ cột G"
+            />
+            <KpiCard
+              title="KPI DONE"
+              value={projectDetails.kpiDone}
+              percentage="Done"
+              progress={100}
+              footer="Dữ liệu từ cột J"
+            />
+            <KpiCard
+              title="KPI EST"
+              value={projectDetails.kpiEst}
+              percentage="Estimate"
+              progress={100}
+              footer="Dữ liệu từ cột K"
+            />
+            <KpiCard
+              title="STATUS"
+              value={projectDetails.status}
+              percentage="State"
+              progress={100}
+              footer="Dữ liệu từ cột L"
+            />
+            <KpiCard
+              title="SALE"
+              value={projectDetails.sale}
+              percentage="Person"
+              progress={100}
+              footer="Dữ liệu từ cột N"
+            />
+          </div>
         )}
       </div>
     );
@@ -511,8 +565,8 @@ if (selectedProject) {
       )}
 
       {/* KPI Cards */}
-      {summary && ( 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {summary && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           <KpiCard
             title="Tổng số Khách hàng"
             value={summary.totalCustomers?.toString() || '0'}
@@ -528,92 +582,123 @@ if (selectedProject) {
             footer="Tổng từ cột C (PROJECTID)"
           />
           <KpiCard
+            title="Tổng số Hợp đồng"
+            value={summary.totalContracts?.toString() || '0'}
+            percentage="Unique"
+            progress={100}
+            footer="Tổng từ cột E (Contract)"
+          />
+          <KpiCard
+            title="Tổng số Sales"
+            value={summary.totalSales?.toString() || '0'}
+            percentage="Unique"
+            progress={100}
+            footer="Tổng từ cột N (Sale)"
+          />
+          <KpiCard
             title="Tổng số Năm"
             value={summary.totalYears?.toString() || '0'}
             percentage="Unique"
             progress={100}
-            footer="Tổng từ cột D (YEAR_BID)"
+            footer="Tổng từ cột D (YEAR_BID )"
           />
         </div>
       )}
 
-{/* ==================== ĐOẠN CODE ĐÃ SỬA Ô TÌM KIẾM KÉO DÀI ==================== */}
-<div className={`${styles.actionBar} flex-col lg:flex-row`}>
-  
-  {/* 1. Ô Tìm kiếm (Sử dụng md:flex-1 để tự động kéo dãn chiếm khoảng trống) */}
-  <div className={`${styles.searchWrapper} w-full lg:flex-1`}>
-    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
-      <Search size={14} />
-    </span>
-    <input
-      type="text"
-      placeholder="Tìm kiếm khách hàng, dự án..."
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-      className={styles.searchInput}
-    />
-  </div>
+      {/* ==================== ĐOẠN CODE ĐÃ SỬA Ô TÌM KIẾM KÉO DÀI ==================== */}
+      <div className={`${styles.actionBar} flex-col lg:flex-row`}>
 
-  {/* Khối gom nhóm Nút và Dropdown cố định kích thước ở bên phải */}
-  <div className={`${styles.actionsContainer} flex-col sm:flex-row w-full lg:w-auto`}>
-    
-    {/* 2. Nút Thêm dự án mới */}
-    <button
-      onClick={() => setIsModalOpen(true)}
-      className={`${styles.actionButton} ${styles.primaryButton}`}
-    >
-      <PlusCircle size={13} /> Thêm dự án
-    </button>
-
-    {/* Nút Quản lý cấu trúc với Dropdown Menu */}
-    <div className="relative w-full sm:w-auto" ref={structureMenuRef}>
-      <button
-        onClick={() => setIsStructureMenuOpen(prev => !prev)}
-        className={`${styles.actionButton} ${styles.secondaryButton}`}
-      >
-        <Layers size={13} /> Chỉnh sửa
-      </button>
-      {isStructureMenuOpen && (
-        <div className={styles.dropdownMenu}>
-          <button onClick={() => openModal('add-year')} className={styles.dropdownMenuItem}>
-            ➕ Thêm năm mới
-          </button>
-          <button onClick={() => openModal('delete-year')} className={styles.dropdownMenuItem}>
-            ❌ Xóa năm hiện tại
-          </button>
-          <div className={styles.dropdownDivider}></div>
-          <button onClick={() => openModal('add-customer')} className={styles.dropdownMenuItem}>
-            👤 Thêm khách hàng mới
-          </button>
-          <button onClick={() => openModal('delete-customer')} className={styles.dropdownMenuItem}>
-            🗑️ Xóa khách hàng hiện tại
-          </button>
+        {/* 1. Ô Tìm kiếm (Sử dụng md:flex-1 để tự động kéo dãn chiếm khoảng trống) */}
+        <div className={`${styles.searchWrapper} w-full lg:flex-1`}>
+          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
+            <Search size={14} />
+          </span>
+          <input
+            type="text"
+            placeholder="Tìm kiếm khách hàng, dự án..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={styles.searchInput}
+          />
         </div>
-      )}
-    </div>
 
-    {/* 3. Dropdown chọn năm */}
-    <div className="relative w-full sm:w-36 shrink-0">
-      <select
-        value={selectedYear}
-        onChange={(e) => setSelectedYear(e.target.value)}
-        className="w-full bg-[#0d0e12] border border-zinc-800/80 rounded-lg px-3 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500/60 transition-colors appearance-none cursor-pointer font-medium"
-      >
-        {years.map((year) => (
-          <option key={year} value={year} className="bg-[#121318] text-zinc-300">
-            {year === "All" ? "Tất cả các năm" : `Năm ${year}`}
-          </option>
-        ))}
-      </select>
-      {/* Biểu tượng mũi tên nhỏ chỉ xuống */}
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-500 border-l border-zinc-800/40 ml-2">
-        <ChevronDown size={14} />
+        {/* Khối gom nhóm Nút và Dropdown cố định kích thước ở bên phải */}
+        <div className={`${styles.actionsContainer} flex-col sm:flex-row w-full lg:w-auto`}>
+
+          {/* 2. Nút Thêm dự án mới */}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className={`${styles.actionButton} ${styles.primaryButton}`}
+          >
+            <PlusCircle size={13} /> Thêm dự án
+          </button>
+
+          {/* Nút Quản lý cấu trúc với Dropdown Menu */}
+          <div className="relative w-full sm:w-auto" ref={structureMenuRef}>
+            <button
+              onClick={() => setIsStructureMenuOpen(prev => !prev)}
+              className={`${styles.actionButton} ${styles.secondaryButton}`}
+            >
+              <Layers size={13} /> Chỉnh sửa
+            </button>
+            {isStructureMenuOpen && (
+              <div className={styles.dropdownMenu}>
+                <button onClick={() => openModal('add-year')} className={styles.dropdownMenuItem}>
+                  ➕ Thêm năm mới
+                </button>
+                <button onClick={() => openModal('delete-year')} className={styles.dropdownMenuItem}>
+                  ❌ Xóa năm hiện tại
+                </button>
+                <div className={styles.dropdownDivider}></div>
+                <button onClick={() => openModal('add-customer')} className={styles.dropdownMenuItem}>
+                  👤 Thêm khách hàng mới
+                </button>
+                <button onClick={() => openModal('delete-customer')} className={styles.dropdownMenuItem}>
+                  🗑️ Xóa khách hàng hiện tại
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 3. Dropdown chọn năm */}
+          <div className="relative w-full sm:w-36 shrink-0">
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="w-full bg-[#0d0e12] border border-zinc-800/80 rounded-lg px-3 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500/60 transition-colors appearance-none cursor-pointer font-medium"
+            >
+              {years.map((year) => (
+                <option key={year} value={year} className="bg-[#121318] text-zinc-300">
+                  {year === "All" ? "Tất cả các năm" : /^\d{4}$/.test(year) ? `Năm ${year}` : year}
+                </option>
+              ))}
+            </select>
+            {/* Biểu tượng mũi tên nhỏ chỉ xuống */}
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-500 border-l border-zinc-800/40 ml-2">
+              <ChevronDown size={14} />
+            </div>
+          </div>
+
+          {/* 4. Dropdown chọn Status */}
+          <div className="relative w-full sm:w-40 shrink-0">
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="w-full bg-[#0d0e12] border border-zinc-800/80 rounded-lg px-3 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500/60 transition-colors appearance-none cursor-pointer font-medium"
+            >
+              <option value="All">Tất cả trạng thái</option>
+              {STATUS_OPTIONS.map(status => (
+                <option key={status} value={status}>{status}</option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-500 border-l border-zinc-800/40 ml-2">
+              <ChevronDown size={14} />
+            </div>
+          </div>
+
+        </div>
+
       </div>
-    </div>
-
-  </div>
-
-</div>
 
       {/* Hiển thị danh sách phân cấp */}
       {loading ? (
@@ -640,9 +725,8 @@ if (selectedProject) {
                     {/* Year Folder Node */}
                     <div
                       onClick={() => !searchQuery && toggleYear(year)}
-                      className={`flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-zinc-800/40 transition-colors select-none ${
-                        searchQuery ? "" : "cursor-pointer"
-                      }`}
+                      className={`flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-zinc-800/40 transition-colors select-none ${searchQuery ? "" : "cursor-pointer"
+                        }`}
                     >
                       <span className="text-base select-none">🗂️</span>
                       <span className="font-bold text-zinc-100 tracking-wider">
@@ -668,9 +752,8 @@ if (selectedProject) {
                               {/* Customer Node */}
                               <div
                                 onClick={() => !searchQuery && toggleCustomer(customerKey)}
-                                className={`flex items-center py-1 px-2 rounded hover:bg-zinc-800/30 transition-colors select-none ${
-                                  searchQuery ? "" : "cursor-pointer"
-                                }`}
+                                className={`flex items-center py-1 px-2 rounded hover:bg-zinc-800/30 transition-colors select-none ${searchQuery ? "" : "cursor-pointer"
+                                  }`}
                               >
                                 <span className="text-zinc-500 font-bold select-none tracking-tight mr-1 whitespace-pre">
                                   {customerPrefix}
@@ -686,7 +769,7 @@ if (selectedProject) {
 
                               {/* Customer Children (Projects) */}
                               {isCustomerExpanded && (
-                                <div className="space-y-1">
+                                <div className="space-y-0.5">
                                   {groupedData[year][customer].map((project, projIdx) => {
                                     const isLastProject = projIdx === groupedData[year][customer].length - 1;
                                     const pathPrefix = isLastCustomer ? "        " : "     ";
@@ -695,16 +778,35 @@ if (selectedProject) {
                                     return (
                                       <div
                                         key={projIdx}
-                                        className="flex items-center py-0.5 px-2 rounded hover:bg-zinc-800/20 transition-colors group"
+                                        className="flex items-center justify-between py-1 px-2 rounded hover:bg-zinc-800/20 transition-colors group relative"
                                       >
-                                        <span className="text-zinc-600 font-bold select-none tracking-tight whitespace-pre">
-                                          {pathPrefix}
-                                          {projectPrefix}
-                                        </span>
-                                        <span className="mr-1.5 select-none text-[13px] group-hover:scale-110 transition-transform">📄</span>
-                                        <span className="text-zinc-300 group-hover:text-zinc-100 transition-colors font-medium">
-                                          {project}
-                                        </span>
+                                        <Link
+                                          href={`/dashboard/years?project=${encodeURIComponent(project.projectId)}`}
+                                          className="flex items-center min-w-0 flex-1"
+                                        >
+                                          <span className="text-zinc-600 font-bold select-none tracking-tight whitespace-pre">{pathPrefix}{projectPrefix}</span>
+                                          <span className="mr-1.5 select-none text-[13px] group-hover:scale-110 transition-transform">📄</span>
+                                          <span className="text-zinc-300 group-hover:text-zinc-100 transition-colors font-medium truncate">{project.projectId}</span>
+                                        </Link>
+                                        <div className="flex items-center gap-2 shrink-0 ml-4 pl-2">
+                                          {project.sale && (
+                                            <span className="px-2 py-0.5 text-[9px] font-medium rounded-full bg-zinc-900 text-zinc-400 border border-zinc-700/50" title={`Sale: ${project.sale}`}>{project.sale}</span>
+                                          )}
+                                          {project.status && project.status !== 'Chưa có' && (
+                                            <span
+                                              className="px-2 py-0.5 text-[9px] font-medium rounded-full"
+                                              style={getStatusBadgeStyle(project.status)}
+                                              title={`Trạng thái: ${project.status}`}
+                                            >{project.status}</span>
+                                          )}
+                                          <button
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOpenEditModal(project); }}
+                                            className="p-1 rounded-md text-zinc-500 hover:text-zinc-100 hover:bg-zinc-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            title="Chỉnh sửa dự án"
+                                          >
+                                            <ICONS.Pencil size={12} />
+                                          </button>
+                                        </div>
                                       </div>
                                     );
                                   })}
@@ -726,7 +828,7 @@ if (selectedProject) {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
           <div className="bg-[#16171d] border border-zinc-800/80 rounded-xl shadow-2xl w-full max-w-lg m-4">
-            <div className="p-5 border-b border-zinc-800/60 flex justify-between items-center">
+            <div className="p-5 border-b border-zinc-800/60 flex justify-between items-center" >
               <h2 className="text-base font-semibold text-zinc-100">Thêm dự án mới vào Google Sheet</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-zinc-200">&times;</button>
             </div>
@@ -819,11 +921,11 @@ if (selectedProject) {
         </div>
       )}
 
-      {/* Edit Project Modal */}
+      {/* Edit Project Modal - Sử dụng chung Component tái sử dụng */}
       {isEditModalOpen && editingProject && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
           <div className="bg-[#16171d] border border-zinc-800/80 rounded-xl shadow-2xl w-full max-w-lg m-4">
-            <div className="p-5 border-b border-zinc-800/60 flex justify-between items-center">
+            <div className="p-5 border-b border-zinc-800/60 flex justify-between items-center" >
               <h2 className="text-base font-semibold text-zinc-100">Chỉnh sửa dự án</h2>
               <button onClick={() => setIsEditModalOpen(false)} className="text-zinc-500 hover:text-zinc-200">&times;</button>
             </div>
@@ -833,7 +935,7 @@ if (selectedProject) {
                   <label htmlFor="edit-year" className="text-xs font-medium text-zinc-400 block mb-1.5">Năm <span className="text-red-500">*</span></label>
                   <input
                     id="edit-year"
-                    type="number"
+                    type="text"
                     value={editingProject.year}
                     onChange={(e) => setEditingProject({ ...editingProject, year: e.target.value })}
                     className="w-full bg-[#0d0e12] border border-zinc-700/80 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500/60 transition-colors"
@@ -842,14 +944,29 @@ if (selectedProject) {
                 </div>
                 <div>
                   <label htmlFor="edit-customerId" className="text-xs font-medium text-zinc-400 block mb-1.5">Khách hàng <span className="text-red-500">*</span></label>
-                  <input
-                    id="edit-customerId"
-                    type="text"
-                    value={editingProject.customerId}
-                    onChange={(e) => setEditingProject({ ...editingProject, customerId: e.target.value })}
-                    className="w-full bg-[#0d0e12] border border-zinc-700/80 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500/60 transition-colors"
-                    required
-                  />
+                  <div className={styles.comboboxWrapper} ref={customerComboboxRef}>
+                    <input
+                      id="edit-customerId"
+                      type="text"
+                      placeholder="Gõ để tìm hoặc chọn khách hàng"
+                      value={editingProject.customerId}
+                      onChange={(e) => {
+                        setEditingProject({ ...editingProject, customerId: e.target.value });
+                        setIsCustomerDropdownOpen(true);
+                      }}
+                      onFocus={() => setIsCustomerDropdownOpen(true)}
+                      className={styles.comboboxInput}
+                      required
+                      autoComplete="off"
+                    />
+                    {isCustomerDropdownOpen && (
+                      <div className={styles.suggestionList}>
+                        {uniqueCustomersForForm.filter(c => c.toLowerCase().includes(editingProject.customerId.toLowerCase())).map(c => (
+                          <button key={c} type="button" onClick={() => { setEditingProject({ ...editingProject, customerId: c }); setIsCustomerDropdownOpen(false); }} className={styles.suggestionItem}>{c}</button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <label htmlFor="edit-projectId" className="text-xs font-medium text-zinc-400 block mb-1.5">Tên dự án <span className="text-red-500">*</span></label>
@@ -861,6 +978,39 @@ if (selectedProject) {
                     className="w-full bg-[#0d0e12] border border-zinc-700/80 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500/60 transition-colors"
                     required
                   />
+                </div>
+                <div>
+                  <label htmlFor="edit-contract" className="text-xs font-medium text-zinc-400 block mb-1.5">Hợp đồng</label>
+                  <input
+                    id="edit-contract"
+                    type="text"
+                    value={editingProject.contract}
+                    onChange={(e) => setEditingProject({ ...editingProject, contract: e.target.value })}
+                    className="w-full bg-[#0d0e12] border border-zinc-700/80 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500/60 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="edit-sale" className="text-xs font-medium text-zinc-400 block mb-1.5">Sale</label>
+                  <input
+                    id="edit-sale"
+                    type="text"
+                    value={editingProject.sale}
+                    onChange={(e) => setEditingProject({ ...editingProject, sale: e.target.value })}
+                    className="w-full bg-[#0d0e12] border border-zinc-700/80 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500/60 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="edit-status" className="text-xs font-medium text-zinc-400 block mb-1.5">Trạng thái</label>
+                  <select
+                    id="edit-status"
+                    value={editingProject.status}
+                    onChange={(e) => setEditingProject({ ...editingProject, status: e.target.value })}
+                    className="w-full bg-[#0d0e12] border border-zinc-700/80 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500/60 transition-colors appearance-none cursor-pointer"
+                  >
+                    {STATUS_OPTIONS.map(status => (
+                      <option key={status} value={status}>{status}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="p-4 bg-[#121318] border-t border-zinc-800/60 rounded-b-xl flex justify-between items-center">
@@ -1121,7 +1271,7 @@ function StructureModals({ activeModal, onClose, years, customers, router }: { a
 
   return (
     <div className={styles.modalOverlay}>
-      <div className={`${styles.modalContent} max-w-lg`}>
+      <div className={`${styles.modalContent}`}>
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>{getModalTitle()}</h2>
           <button onClick={onClose} className={styles.modalCloseButton}>&times;</button>
