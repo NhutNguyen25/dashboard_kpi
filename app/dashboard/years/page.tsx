@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import styles from "./years.module.css";
+import styles from '@/app/dashboard/years/years.module.css';
 import React, { useEffect, useState, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import KpiCard from "@/components/KpiCard";
 import WeeklyChart from "@/components/WeeklyChart";
-import EditProjectModal from "./components/EditProjectModal";
+import EditProjectModal from "@/components/EditProjectModal";
 
 const STATUS_OPTIONS = [
   "Tư vấn và báo giá",
@@ -132,7 +132,6 @@ function YearsReportsContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-  // State for "Edit Project" Modal
   // State for Customer Combobox in Add Modal
   const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
   const customerComboboxRef = useRef<HTMLDivElement>(null);
@@ -219,7 +218,7 @@ function YearsReportsContent() {
   };
 
   // Function to open the Edit Project Modal
-const handleOpenEditModal = (projectToEdit: ProjectData) => {
+  const handleOpenEditModal = (projectToEdit: ProjectData) => {
     setEditingProject(projectToEdit); //
     setIsEditModalOpen(true);
   };
@@ -366,75 +365,11 @@ const handleOpenEditModal = (projectToEdit: ProjectData) => {
     ? uniqueCustomersForForm.filter(c => c.toLowerCase().includes(newProject.customerId.toLowerCase()))
     : uniqueCustomersForForm;
 
-
-  if (selectedYearParam && selectedCustomerParam) {
-    const customerProjects = projects.filter(p => p.year === selectedYearParam && p.customerId === selectedCustomerParam);
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.push("/dashboard/years")}
-            className="bg-[#121318] hover:bg-zinc-800 text-zinc-300 text-xs px-3.5 py-2 rounded-lg border border-zinc-800/80 transition-all font-medium cursor-pointer"
-          >
-            ← Trở lại
-          </button>
-          <div className="min-w-0">
-            <h1 className="text-xl font-semibold text-zinc-100 tracking-tight truncate" title={selectedCustomerParam}>
-              Dự án của: {selectedCustomerParam}
-            </h1>
-            <p className="text-[11px] text-zinc-500 mt-0.5">Năm {selectedYearParam}</p>
-          </div>
-        </div>
-
-        <div className="bg-[#121318] border border-zinc-800/80 rounded-xl">
-          <div className="p-4 border-b border-zinc-800/60">
-            <h3 className="text-xs font-semibold text-zinc-300">Danh sách dự án ({customerProjects.length})</h3>
-          </div>
-          <div className="p-2 space-y-1">
-            {customerProjects.length > 0 ? (
-              customerProjects.map(project => (
-                <div
-                  key={project.projectId}
-                  className="flex items-center justify-between p-2.5 rounded-lg hover:bg-zinc-800/50 transition-colors group"
-                >
-                  <Link
-                    href={`/dashboard/years?project=${encodeURIComponent(project.projectId)}`}
-                    className="flex items-center gap-2.5 min-w-0 flex-1"
-                  >
-                    <ICONS.File size={14} className="text-blue-500 shrink-0" />
-                    <span className="text-sm font-medium text-zinc-200 truncate group-hover:text-zinc-100">{project.projectId}</span>
-                  </Link>
-                  <div className="flex items-center gap-2 shrink-0 ml-4 pl-2">
-                    {project.sale && (
-                      <span className="px-2 py-0.5 text-[9px] font-medium rounded-full bg-zinc-900 text-zinc-400 border border-zinc-700/50" title={`Sale: ${project.sale}`}>{project.sale}</span>
-                    )}
-                    {project.status && project.status !== 'Chưa có' && (
-                      <span className="px-2 py-0.5 text-[9px] font-medium rounded-full" style={getStatusBadgeStyle(project.status)} title={`Trạng thái: ${project.status}`}>{project.status}</span>
-                    )}
-                    <button
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOpenEditModal(project); }}
-                      className="p-1 rounded-md text-zinc-500 hover:text-zinc-100 hover:bg-zinc-700 opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Chỉnh sửa dự án"
-                    >
-                      <ICONS.Pencil size={12} />
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-xs text-zinc-500 p-8">Không có dự án nào cho khách hàng này trong năm {selectedYearParam}.</p>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (selectedProject) {
-    return (
-      <div className="space-y-6">
-        {/* Tiêu đề & Nút Trở lại */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-4">
+  const renderMainContent = () => {
+    if (selectedYearParam && selectedCustomerParam) {
+      const customerProjects = projects.filter(p => p.year === selectedYearParam && p.customerId === selectedCustomerParam);
+      return (
+        <div className="space-y-6">
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.push("/dashboard/years")}
@@ -443,69 +378,448 @@ const handleOpenEditModal = (projectToEdit: ProjectData) => {
               ← Trở lại
             </button>
             <div className="min-w-0">
-              <h1 className="text-xl font-semibold text-zinc-100 tracking-tight truncate" title={selectedProject}>{selectedProject}</h1>
-              <p className="text-[11px] text-zinc-500 mt-0.5">Chi tiết chỉ số KPI & tiến độ dự án từ Google Sheet</p>
+              <h1 className="text-xl font-semibold text-zinc-100 tracking-tight truncate" title={selectedCustomerParam}>
+                Dự án của: {selectedCustomerParam}
+              </h1>
+              <p className="text-[11px] text-zinc-500 mt-0.5">Năm {selectedYearParam}</p>
+            </div>
+          </div>
+
+          <div className="bg-[#121318] border border-zinc-800/80 rounded-xl">
+            <div className="p-4 border-b border-zinc-800/60">
+              <h3 className="text-xs font-semibold text-zinc-300">Danh sách dự án ({customerProjects.length})</h3>
+            </div>
+            <div className="p-2 space-y-1">
+              {customerProjects.length > 0 ? (
+                customerProjects.map(project => (
+                  <div
+                    key={project.projectId}
+                    className="flex items-center justify-between p-2.5 rounded-lg hover:bg-zinc-800/50 transition-colors group"
+                  >
+                    <Link
+                      href={`/dashboard/years?project=${encodeURIComponent(project.projectId)}`}
+                      className="flex items-center gap-2.5 min-w-0 flex-1"
+                    >
+                      <ICONS.File size={14} className="text-blue-500 shrink-0" />
+                      <span className="text-sm font-medium text-zinc-200 truncate group-hover:text-zinc-100">{project.projectId}</span>
+                    </Link>
+                    <div className="flex items-center gap-2 shrink-0 ml-4 pl-2">
+                      {project.sale && (
+                        <span className="px-2 py-0.5 text-[9px] font-medium rounded-full bg-zinc-900 text-zinc-400 border border-zinc-700/50" title={`Sale: ${project.sale}`}>{project.sale}</span>
+                      )}
+                      {project.status && project.status !== 'Chưa có' && (
+                        <span className="px-2 py-0.5 text-[9px] font-medium rounded-full" style={getStatusBadgeStyle(project.status)} title={`Trạng thái: ${project.status}`}>{project.status}</span>
+                      )}
+                      <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOpenEditModal(project); }}
+                        className="p-1 rounded-md text-zinc-500 hover:text-zinc-100 hover:bg-zinc-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Chỉnh sửa dự án"
+                      >
+                        <ICONS.Pencil size={12} />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-xs text-zinc-500 p-8">Không có dự án nào cho khách hàng này trong năm {selectedYearParam}.</p>
+              )}
             </div>
           </div>
         </div>
+      );
+    }
 
-        {/* Conditional rendering for details */}
-        {detailsLoading && (
-          <div className="flex justify-center items-center h-40 border border-dashed border-zinc-800 rounded-xl">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-            <span className="text-zinc-400">Đang tải chi tiết dự án...</span>
+    if (selectedProject) {
+      return (
+        <div className="space-y-6">
+          {/* Tiêu đề & Nút Trở lại */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => router.push("/dashboard/years")}
+                className="bg-[#121318] hover:bg-zinc-800 text-zinc-300 text-xs px-3.5 py-2 rounded-lg border border-zinc-800/80 transition-all font-medium cursor-pointer"
+              >
+                ← Trở lại
+              </button>
+              <div className="min-w-0">
+                <h1 className="text-xl font-semibold text-zinc-100 tracking-tight truncate" title={selectedProject}>{selectedProject}</h1>
+                <p className="text-[11px] text-zinc-500 mt-0.5">Chi tiết chỉ số KPI & tiến độ dự án từ Google Sheet</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Conditional rendering for details */}
+          {detailsLoading && (
+            <div className="flex justify-center items-center h-40 border border-dashed border-zinc-800 rounded-xl">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+              <span className="text-zinc-400">Đang tải chi tiết dự án...</span>
+            </div>
+          )}
+          {detailsError && (
+            <div className="bg-red-950/20 border border-red-900/50 rounded-xl p-4 text-red-400">
+              <h4 className="font-semibold text-red-200">Lỗi tải chi tiết dự án</h4>
+              <p className="text-xs mt-1">{detailsError}</p>
+            </div>
+          )}
+          {projectDetails && !detailsLoading && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <KpiCard
+                title="CONTRACT"
+                value={projectDetails.contract}
+                percentage="ID"
+                progress={100}
+                footer="Dữ liệu từ cột E"
+              />
+              <KpiCard
+                title="PROCESS"
+                value={projectDetails.process}
+                percentage="Progress"
+                progress={parseFloat(projectDetails.process) || 0}
+                footer="Dữ liệu từ cột G"
+              />
+              <KpiCard
+                title="KPI DONE"
+                value={projectDetails.kpiDone}
+                percentage="Done"
+                progress={100}
+                footer="Dữ liệu từ cột J"
+              />
+              <KpiCard
+                title="KPI EST"
+                value={projectDetails.kpiEst}
+                percentage="Estimate"
+                progress={100}
+                footer="Dữ liệu từ cột K"
+              />
+              <KpiCard
+                title="STATUS"
+                value={projectDetails.status}
+                percentage="State"
+                progress={100}
+                footer="Dữ liệu từ cột L"
+              />
+              <KpiCard
+                title="SALE"
+                value={projectDetails.sale}
+                percentage="Person"
+                progress={100}
+                footer="Dữ liệu từ cột N"
+              />
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        {/* Tiêu đề trang */}
+        <div>
+          <h1 className="text-xl font-semibold text-zinc-100 tracking-tight">Project Manager</h1>
+          <p className="text-[11px] text-zinc-500 mt-0.5">Report grouped by Year → Customer → Project from Google Sheets</p>
+        </div>
+
+        {/* Lỗi mạng hoặc lỗi kết nối khác (không phải do chưa chia sẻ Sheet) */}
+        {error && !needsShare && (
+          <div className="bg-red-950/20 border border-red-900/50 rounded-xl p-4 flex gap-3 text-red-400 animate-fade-in">
+            <AlertCircle className="text-red-500 shrink-0" size={18} />
+            <div>
+              <h4 className="text-xs font-semibold text-red-200">Lỗi kết nối API</h4>
+              <p className="text-[10px] text-zinc-400 mt-0.5">{error}</p>
+            </div>
           </div>
         )}
-        {detailsError && (
-          <div className="bg-red-950/20 border border-red-900/50 rounded-xl p-4 text-red-400">
-            <h4 className="font-semibold text-red-200">Lỗi tải chi tiết dự án</h4>
-            <p className="text-xs mt-1">{detailsError}</p>
+
+        {/* Thông báo chưa chia sẻ Sheet & Nút copy email */}
+        {needsShare && (
+          <div className="bg-amber-950/20 border border-amber-900/50 rounded-xl p-4 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center animate-fade-in">
+            <div className="flex gap-3">
+              <AlertCircle className="text-amber-500 shrink-0 mt-0.5" size={18} />
+              <div className="space-y-1">
+                <h4 className="text-xs font-semibold text-amber-200">Google Sheet Chưa Được Chia Sẻ Quyền</h4>
+                <p className="text-[10px] text-zinc-400 max-w-2xl leading-relaxed">
+                  Không thể tải danh sách dự án. Để lấy dữ liệu thực tế, hãy chia sẻ quyền xem (Viewer) cho email Service Account bên dưới:
+                </p>
+                <div className="flex items-center gap-1.5 mt-2 bg-black/40 px-2.5 py-1 rounded-md border border-zinc-800 w-fit">
+                  <span className="text-[10px] font-mono text-zinc-300">{SERVICE_ACCOUNT_EMAIL}</span>
+                  <button
+                    onClick={handleCopyEmail}
+                    className="text-zinc-500 hover:text-zinc-300 p-0.5 transition-colors cursor-pointer"
+                    title="Sao chép email"
+                  >
+                    {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <a
+              href="https://docs.google.com/spreadsheets/d/1IwHmlrjM51-wsQi8oz3OSWImKaEuWEZws63oyP6iy9M/edit?gid=1094067039#gid=1094067039"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-[10px] bg-amber-600/10 hover:bg-amber-600/25 text-amber-400 px-3 py-1.5 rounded-lg border border-amber-500/20 font-medium transition-all shrink-0 cursor-pointer"
+            >
+              Mở Google Sheet <ExternalLink size={10} />
+            </a>
           </div>
         )}
-        {projectDetails && !detailsLoading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        {/* KPI Cards */}
+        {summary && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <KpiCard
-              title="CONTRACT"
-              value={projectDetails.contract}
-              percentage="ID"
+              title="Tổng số Khách hàng"
+              value={summary.totalCustomers?.toString() || '0'}
+              percentage="Unique"
               progress={100}
-              footer="Dữ liệu từ cột E"
+              footer="Tổng từ cột B (CUSTOMID)"
             />
             <KpiCard
-              title="PROCESS"
-              value={projectDetails.process}
-              percentage="Progress"
-              progress={parseFloat(projectDetails.process) || 0}
-              footer="Dữ liệu từ cột G"
-            />
-            <KpiCard
-              title="KPI DONE"
-              value={projectDetails.kpiDone}
-              percentage="Done"
+              title="Tổng số Dự án"
+              value={summary.totalTasks.toString()}
+              percentage="Live"
               progress={100}
-              footer="Dữ liệu từ cột J"
+              footer="Tổng từ cột C (PROJECTID)"
             />
             <KpiCard
-              title="KPI EST"
-              value={projectDetails.kpiEst}
-              percentage="Estimate"
+              title="Tổng số Hợp đồng"
+              value={summary.totalContracts?.toString() || '0'}
+              percentage="Unique"
               progress={100}
-              footer="Dữ liệu từ cột K"
+              footer="Tổng từ cột E (Contract)"
             />
             <KpiCard
-              title="STATUS"
-              value={projectDetails.status}
-              percentage="State"
+              title="Tổng số Sales"
+              value={summary.totalSales?.toString() || '0'}
+              percentage="Unique"
               progress={100}
-              footer="Dữ liệu từ cột L"
+              footer="Tổng từ cột N (Sale)"
             />
             <KpiCard
-              title="SALE"
-              value={projectDetails.sale}
-              percentage="Person"
+              title="Tổng số Năm"
+              value={summary.totalYears?.toString() || '0'}
+              percentage="Unique"
               progress={100}
-              footer="Dữ liệu từ cột N"
+              footer="Tổng từ cột D (YEAR_BID )"
             />
+          </div>
+        )}
+
+        {/* ==================== ĐOẠN CODE ĐÃ SỬA Ô TÌM KIẾM KÉO DÀI ==================== */}
+        <div className={`${styles.actionBar} flex-col lg:flex-row`}>
+
+          {/* 1. Ô Tìm kiếm (Sử dụng md:flex-1 để tự động kéo dãn chiếm khoảng trống) */}
+          <div className={`${styles.searchWrapper} w-full lg:flex-1`}>
+            <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
+              <Search size={14} />
+            </span>
+            <input
+              type="text"
+              placeholder="Tìm kiếm khách hàng, dự án..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={styles.searchInput}
+            />
+          </div>
+
+          {/* Khối gom nhóm Nút và Dropdown cố định kích thước ở bên phải */}
+          <div className={`${styles.actionsContainer} flex-col sm:flex-row w-full lg:w-auto`}>
+
+            {/* 2. Nút Thêm dự án mới */}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className={`${styles.actionButton} ${styles.primaryButton}`}
+            >
+              <PlusCircle size={13} /> Thêm dự án
+            </button>
+
+            {/* Nút Quản lý cấu trúc với Dropdown Menu */}
+            <div className="relative w-full sm:w-auto" ref={structureMenuRef}>
+              <button
+                onClick={() => setIsStructureMenuOpen(prev => !prev)}
+                className={`${styles.actionButton} ${styles.secondaryButton}`}
+              >
+                <Layers size={13} /> Chỉnh sửa
+              </button>
+              {isStructureMenuOpen && (
+                <div className={styles.dropdownMenu}>
+                  <button onClick={() => openModal('add-year')} className={styles.dropdownMenuItem}>
+                    ➕ Thêm năm mới
+                  </button>
+                  <button onClick={() => openModal('delete-year')} className={styles.dropdownMenuItem}>
+                    ❌ Xóa năm hiện tại
+                  </button>
+                  <div className={styles.dropdownDivider}></div>
+                  <button onClick={() => openModal('add-customer')} className={styles.dropdownMenuItem}>
+                    👤 Thêm khách hàng mới
+                  </button>
+                  <button onClick={() => openModal('delete-customer')} className={styles.dropdownMenuItem}>
+                    🗑️ Xóa khách hàng hiện tại
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 3. Dropdown chọn năm */}
+            <div className="relative w-full sm:w-36 shrink-0">
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="w-full bg-[#0d0e12] border border-zinc-800/80 rounded-lg px-3 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500/60 transition-colors appearance-none cursor-pointer font-medium"
+              >
+                {years.map((year) => (
+                  <option key={year} value={year} className="bg-[#121318] text-zinc-300">
+                    {year === "All" ? "Tất cả các năm" : /^\d{4}$/.test(year) ? `Năm ${year}` : year}
+                  </option>
+                ))}
+              </select>
+              {/* Biểu tượng mũi tên nhỏ chỉ xuống */}
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-500 border-l border-zinc-800/40 ml-2">
+                <ChevronDown size={14} />
+              </div>
+            </div>
+
+            {/* 4. Dropdown chọn Status */}
+            <div className="relative w-full sm:w-40 shrink-0">
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-full bg-[#0d0e12] border border-zinc-800/80 rounded-lg px-3 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500/60 transition-colors appearance-none cursor-pointer font-medium"
+              >
+                <option value="All">Tất cả trạng thái</option>
+                {STATUS_OPTIONS.map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-500 border-l border-zinc-800/40 ml-2">
+                <ChevronDown size={14} />
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* Hiển thị danh sách phân cấp */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center min-h-[200px] text-zinc-400 text-xs gap-2">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+            <span>Đang đồng bộ dữ liệu...</span>
+          </div>
+        ) : Object.keys(groupedData).length === 0 ? (
+          <div className="text-center py-12 text-xs text-zinc-500 border border-dashed border-zinc-800/80 rounded-xl">
+            Không tìm thấy dự án hoặc khách hàng nào phù hợp với bộ lọc.
+          </div>
+        ) : (
+          <div className="bg-[#121318]/90 border border-zinc-800/80 backdrop-blur-md rounded-xl p-6 shadow-2xl font-mono text-xs text-zinc-300 overflow-x-auto selection:bg-blue-500/30">
+            <div className="space-y-4">
+              {Object.keys(groupedData)
+                .sort((a, b) => b.localeCompare(a)) // Hiển thị năm gần nhất trước
+                .map((year) => {
+                  const customers = Object.keys(groupedData[year]).sort((a, b) => a.localeCompare(b));
+                  const totalProjectsOfYear = Object.values(groupedData[year]).reduce((acc, curr) => acc + curr.length, 0);
+                  const isYearExpanded = searchQuery ? true : (expandedYears[year] !== false);
+
+                  return (
+                    <div key={year} className="space-y-1">
+                      {/* Year Folder Node */}
+                      <div
+                        onClick={() => !searchQuery && toggleYear(year)}
+                        className={`flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-zinc-800/40 transition-colors select-none ${searchQuery ? "" : "cursor-pointer"
+                          }`}
+                      >
+                        <span className="text-base select-none">🗂️</span>
+                        <span className="font-bold text-zinc-100 tracking-wider">
+                          YEAR {year}
+                        </span>
+                        <span className="text-zinc-500 text-[10px]">
+                          ({totalProjectsOfYear} project{totalProjectsOfYear !== 1 ? "s" : ""})
+                        </span>
+                      </div>
+
+                      {/* Year Children */}
+                      {isYearExpanded && (
+                        <div className="space-y-1">
+                          {customers.map((customer, custIdx) => {
+                            const customerKey = `${year}-${customer}`;
+                            const projectCount = groupedData[year][customer].length;
+                            const isCustomerExpanded = searchQuery ? true : (expandedCustomers[customerKey] !== false);
+                            const isLastCustomer = custIdx === customers.length - 1;
+                            const customerPrefix = isLastCustomer ? "  " : " ";
+
+                            return (
+                              <div key={customer} className="space-y-1">
+                                {/* Customer Node */}
+                                <div
+                                  onClick={() => !searchQuery && toggleCustomer(customerKey)}
+                                  className={`flex items-center py-1 px-2 rounded hover:bg-zinc-800/30 transition-colors select-none ${searchQuery ? "" : "cursor-pointer"
+                                    }`}
+                                >
+                                  <span className="text-zinc-500 font-bold select-none tracking-tight mr-1 whitespace-pre">
+                                    {customerPrefix}
+                                  </span>
+                                  <span className="mr-1.5 select-none text-[13px]">👤</span>
+                                  <span className="font-semibold text-zinc-200">
+                                    {customer}
+                                  </span>
+                                  <span className="text-zinc-500 text-[10px] ml-1.5">
+                                    ({projectCount} project{projectCount !== 1 ? "s" : ""})
+                                  </span>
+                                </div>
+
+                                {/* Customer Children (Projects) */}
+                                {isCustomerExpanded && (
+                                  <div className="space-y-0.5">
+                                    {groupedData[year][customer].map((project, projIdx) => {
+                                      const isLastProject = projIdx === groupedData[year][customer].length - 1;
+                                      const pathPrefix = isLastCustomer ? "        " : "     ";
+                                      const projectPrefix = isLastProject ? " " : " ";
+
+                                      return (
+                                        <div
+                                          key={projIdx}
+                                          className="flex items-center justify-between py-1 px-2 rounded hover:bg-zinc-800/20 transition-colors group relative"
+                                        >
+                                          <Link
+                                            href={`/dashboard/years?project=${encodeURIComponent(project.projectId)}`}
+                                            className="flex items-center min-w-0 flex-1"
+                                          >
+                                            <span className="text-zinc-600 font-bold select-none tracking-tight whitespace-pre">{pathPrefix}{projectPrefix}</span>
+                                            <span className="mr-1.5 select-none text-[13px] group-hover:scale-110 transition-transform">📄</span>
+                                            <span className="text-zinc-300 group-hover:text-zinc-100 transition-colors font-medium truncate">{project.projectId}</span>
+                                          </Link>
+                                          <div className="flex items-center gap-2 shrink-0 ml-4 pl-2">
+                                            {project.sale && (
+                                              <span className="px-2 py-0.5 text-[9px] font-medium rounded-full bg-zinc-900 text-zinc-400 border border-zinc-700/50" title={`Sale: ${project.sale}`}>{project.sale}</span>
+                                            )}
+                                            {project.status && project.status !== 'Chưa có' && (
+                                              <span
+                                                className="px-2 py-0.5 text-[9px] font-medium rounded-full"
+                                                style={getStatusBadgeStyle(project.status)}
+                                                title={`Trạng thái: ${project.status}`}
+                                              >{project.status}</span>
+                                            )}
+                                            <button
+                                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOpenEditModal(project); }}
+                                              className="p-1 rounded-md text-zinc-500 hover:text-zinc-100 hover:bg-zinc-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                                              title="Chỉnh sửa dự án"
+                                            >
+                                              <ICONS.Pencil size={12} />
+                                            </button>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
           </div>
         )}
       </div>
@@ -513,316 +827,8 @@ const handleOpenEditModal = (projectToEdit: ProjectData) => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Tiêu đề trang */}
-      <div>
-        <h1 className="text-xl font-semibold text-zinc-100 tracking-tight">Project Manager</h1>
-        <p className="text-[11px] text-zinc-500 mt-0.5">Report grouped by Year → Customer → Project from Google Sheets</p>
-      </div>
-
-      {/* Lỗi mạng hoặc lỗi kết nối khác (không phải do chưa chia sẻ Sheet) */}
-      {error && !needsShare && (
-        <div className="bg-red-950/20 border border-red-900/50 rounded-xl p-4 flex gap-3 text-red-400 animate-fade-in">
-          <AlertCircle className="text-red-500 shrink-0" size={18} />
-          <div>
-            <h4 className="text-xs font-semibold text-red-200">Lỗi kết nối API</h4>
-            <p className="text-[10px] text-zinc-400 mt-0.5">{error}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Thông báo chưa chia sẻ Sheet & Nút copy email */}
-      {needsShare && (
-        <div className="bg-amber-950/20 border border-amber-900/50 rounded-xl p-4 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center animate-fade-in">
-          <div className="flex gap-3">
-            <AlertCircle className="text-amber-500 shrink-0 mt-0.5" size={18} />
-            <div className="space-y-1">
-              <h4 className="text-xs font-semibold text-amber-200">Google Sheet Chưa Được Chia Sẻ Quyền</h4>
-              <p className="text-[10px] text-zinc-400 max-w-2xl leading-relaxed">
-                Không thể tải danh sách dự án. Để lấy dữ liệu thực tế, hãy chia sẻ quyền xem (Viewer) cho email Service Account bên dưới:
-              </p>
-              <div className="flex items-center gap-1.5 mt-2 bg-black/40 px-2.5 py-1 rounded-md border border-zinc-800 w-fit">
-                <span className="text-[10px] font-mono text-zinc-300">{SERVICE_ACCOUNT_EMAIL}</span>
-                <button
-                  onClick={handleCopyEmail}
-                  className="text-zinc-500 hover:text-zinc-300 p-0.5 transition-colors cursor-pointer"
-                  title="Sao chép email"
-                >
-                  {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                </button>
-              </div>
-            </div>
-          </div>
-          <a
-            href="https://docs.google.com/spreadsheets/d/1IwHmlrjM51-wsQi8oz3OSWImKaEuWEZws63oyP6iy9M/edit?gid=1094067039#gid=1094067039"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 text-[10px] bg-amber-600/10 hover:bg-amber-600/25 text-amber-400 px-3 py-1.5 rounded-lg border border-amber-500/20 font-medium transition-all shrink-0 cursor-pointer"
-          >
-            Mở Google Sheet <ExternalLink size={10} />
-          </a>
-        </div>
-      )}
-
-      {/* KPI Cards */}
-      {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          <KpiCard
-            title="Tổng số Khách hàng"
-            value={summary.totalCustomers?.toString() || '0'}
-            percentage="Unique"
-            progress={100}
-            footer="Tổng từ cột B (CUSTOMID)"
-          />
-          <KpiCard
-            title="Tổng số Dự án"
-            value={summary.totalTasks.toString()}
-            percentage="Live"
-            progress={100}
-            footer="Tổng từ cột C (PROJECTID)"
-          />
-          <KpiCard
-            title="Tổng số Hợp đồng"
-            value={summary.totalContracts?.toString() || '0'}
-            percentage="Unique"
-            progress={100}
-            footer="Tổng từ cột E (Contract)"
-          />
-          <KpiCard
-            title="Tổng số Sales"
-            value={summary.totalSales?.toString() || '0'}
-            percentage="Unique"
-            progress={100}
-            footer="Tổng từ cột N (Sale)"
-          />
-          <KpiCard
-            title="Tổng số Năm"
-            value={summary.totalYears?.toString() || '0'}
-            percentage="Unique"
-            progress={100}
-            footer="Tổng từ cột D (YEAR_BID )"
-          />
-        </div>
-      )}
-
-      {/* ==================== ĐOẠN CODE ĐÃ SỬA Ô TÌM KIẾM KÉO DÀI ==================== */}
-      <div className={`${styles.actionBar} flex-col lg:flex-row`}>
-
-        {/* 1. Ô Tìm kiếm (Sử dụng md:flex-1 để tự động kéo dãn chiếm khoảng trống) */}
-        <div className={`${styles.searchWrapper} w-full lg:flex-1`}>
-          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500">
-            <Search size={14} />
-          </span>
-          <input
-            type="text"
-            placeholder="Tìm kiếm khách hàng, dự án..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={styles.searchInput}
-          />
-        </div>
-
-        {/* Khối gom nhóm Nút và Dropdown cố định kích thước ở bên phải */}
-        <div className={`${styles.actionsContainer} flex-col sm:flex-row w-full lg:w-auto`}>
-
-          {/* 2. Nút Thêm dự án mới */}
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className={`${styles.actionButton} ${styles.primaryButton}`}
-          >
-            <PlusCircle size={13} /> Thêm dự án
-          </button>
-
-          {/* Nút Quản lý cấu trúc với Dropdown Menu */}
-          <div className="relative w-full sm:w-auto" ref={structureMenuRef}>
-            <button
-              onClick={() => setIsStructureMenuOpen(prev => !prev)}
-              className={`${styles.actionButton} ${styles.secondaryButton}`}
-            >
-              <Layers size={13} /> Chỉnh sửa
-            </button>
-            {isStructureMenuOpen && (
-              <div className={styles.dropdownMenu}>
-                <button onClick={() => openModal('add-year')} className={styles.dropdownMenuItem}>
-                  ➕ Thêm năm mới
-                </button>
-                <button onClick={() => openModal('delete-year')} className={styles.dropdownMenuItem}>
-                  ❌ Xóa năm hiện tại
-                </button>
-                <div className={styles.dropdownDivider}></div>
-                <button onClick={() => openModal('add-customer')} className={styles.dropdownMenuItem}>
-                  👤 Thêm khách hàng mới
-                </button>
-                <button onClick={() => openModal('delete-customer')} className={styles.dropdownMenuItem}>
-                  🗑️ Xóa khách hàng hiện tại
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* 3. Dropdown chọn năm */}
-          <div className="relative w-full sm:w-36 shrink-0">
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="w-full bg-[#0d0e12] border border-zinc-800/80 rounded-lg px-3 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500/60 transition-colors appearance-none cursor-pointer font-medium"
-            >
-              {years.map((year) => (
-                <option key={year} value={year} className="bg-[#121318] text-zinc-300">
-                  {year === "All" ? "Tất cả các năm" : /^\d{4}$/.test(year) ? `Năm ${year}` : year}
-                </option>
-              ))}
-            </select>
-            {/* Biểu tượng mũi tên nhỏ chỉ xuống */}
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-500 border-l border-zinc-800/40 ml-2">
-              <ChevronDown size={14} />
-            </div>
-          </div>
-
-          {/* 4. Dropdown chọn Status */}
-          <div className="relative w-full sm:w-40 shrink-0">
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full bg-[#0d0e12] border border-zinc-800/80 rounded-lg px-3 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500/60 transition-colors appearance-none cursor-pointer font-medium"
-            >
-              <option value="All">Tất cả trạng thái</option>
-              {STATUS_OPTIONS.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-500 border-l border-zinc-800/40 ml-2">
-              <ChevronDown size={14} />
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* Hiển thị danh sách phân cấp */}
-      {loading ? (
-        <div className="flex flex-col items-center justify-center min-h-[200px] text-zinc-400 text-xs gap-2">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-          <span>Đang đồng bộ dữ liệu...</span>
-        </div>
-      ) : Object.keys(groupedData).length === 0 ? (
-        <div className="text-center py-12 text-xs text-zinc-500 border border-dashed border-zinc-800/80 rounded-xl">
-          Không tìm thấy dự án hoặc khách hàng nào phù hợp với bộ lọc.
-        </div>
-      ) : (
-        <div className="bg-[#121318]/90 border border-zinc-800/80 backdrop-blur-md rounded-xl p-6 shadow-2xl font-mono text-xs text-zinc-300 overflow-x-auto selection:bg-blue-500/30">
-          <div className="space-y-4">
-            {Object.keys(groupedData)
-              .sort((a, b) => b.localeCompare(a)) // Hiển thị năm gần nhất trước
-              .map((year) => {
-                const customers = Object.keys(groupedData[year]).sort((a, b) => a.localeCompare(b));
-                const totalProjectsOfYear = Object.values(groupedData[year]).reduce((acc, curr) => acc + curr.length, 0);
-                const isYearExpanded = searchQuery ? true : (expandedYears[year] !== false);
-
-                return (
-                  <div key={year} className="space-y-1">
-                    {/* Year Folder Node */}
-                    <div
-                      onClick={() => !searchQuery && toggleYear(year)}
-                      className={`flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-zinc-800/40 transition-colors select-none ${searchQuery ? "" : "cursor-pointer"
-                        }`}
-                    >
-                      <span className="text-base select-none">🗂️</span>
-                      <span className="font-bold text-zinc-100 tracking-wider">
-                        YEAR {year}
-                      </span>
-                      <span className="text-zinc-500 text-[10px]">
-                        ({totalProjectsOfYear} project{totalProjectsOfYear !== 1 ? "s" : ""})
-                      </span>
-                    </div>
-
-                    {/* Year Children */}
-                    {isYearExpanded && (
-                      <div className="space-y-1">
-                        {customers.map((customer, custIdx) => {
-                          const customerKey = `${year}-${customer}`;
-                          const projectCount = groupedData[year][customer].length;
-                          const isCustomerExpanded = searchQuery ? true : (expandedCustomers[customerKey] !== false);
-                          const isLastCustomer = custIdx === customers.length - 1;
-                          const customerPrefix = isLastCustomer ? "  " : " ";
-
-                          return (
-                            <div key={customer} className="space-y-1">
-                              {/* Customer Node */}
-                              <div
-                                onClick={() => !searchQuery && toggleCustomer(customerKey)}
-                                className={`flex items-center py-1 px-2 rounded hover:bg-zinc-800/30 transition-colors select-none ${searchQuery ? "" : "cursor-pointer"
-                                  }`}
-                              >
-                                <span className="text-zinc-500 font-bold select-none tracking-tight mr-1 whitespace-pre">
-                                  {customerPrefix}
-                                </span>
-                                <span className="mr-1.5 select-none text-[13px]">👤</span>
-                                <span className="font-semibold text-zinc-200">
-                                  {customer}
-                                </span>
-                                <span className="text-zinc-500 text-[10px] ml-1.5">
-                                  ({projectCount} project{projectCount !== 1 ? "s" : ""})
-                                </span>
-                              </div>
-
-                              {/* Customer Children (Projects) */}
-                              {isCustomerExpanded && (
-                                <div className="space-y-0.5">
-                                  {groupedData[year][customer].map((project, projIdx) => {
-                                    const isLastProject = projIdx === groupedData[year][customer].length - 1;
-                                    const pathPrefix = isLastCustomer ? "        " : "     ";
-                                    const projectPrefix = isLastProject ? " " : " ";
-
-                                    return (
-                                      <div
-                                        key={projIdx}
-                                        className="flex items-center justify-between py-1 px-2 rounded hover:bg-zinc-800/20 transition-colors group relative"
-                                      >
-                                        <Link
-                                          href={`/dashboard/years?project=${encodeURIComponent(project.projectId)}`}
-                                          className="flex items-center min-w-0 flex-1"
-                                        >
-                                          <span className="text-zinc-600 font-bold select-none tracking-tight whitespace-pre">{pathPrefix}{projectPrefix}</span>
-                                          <span className="mr-1.5 select-none text-[13px] group-hover:scale-110 transition-transform">📄</span>
-                                          <span className="text-zinc-300 group-hover:text-zinc-100 transition-colors font-medium truncate">{project.projectId}</span>
-                                        </Link>
-                                        <div className="flex items-center gap-2 shrink-0 ml-4 pl-2">
-                                          {project.sale && (
-                                            <span className="px-2 py-0.5 text-[9px] font-medium rounded-full bg-zinc-900 text-zinc-400 border border-zinc-700/50" title={`Sale: ${project.sale}`}>{project.sale}</span>
-                                          )}
-                                          {project.status && project.status !== 'Chưa có' && (
-                                            <span
-                                              className="px-2 py-0.5 text-[9px] font-medium rounded-full"
-                                              style={getStatusBadgeStyle(project.status)}
-                                              title={`Trạng thái: ${project.status}`}
-                                            >{project.status}</span>
-                                          )}
-                                          <button
-                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleOpenEditModal(project); }}
-                                            className="p-1 rounded-md text-zinc-500 hover:text-zinc-100 hover:bg-zinc-700 opacity-0 group-hover:opacity-100 transition-opacity"
-                                            title="Chỉnh sửa dự án"
-                                          >
-                                            <ICONS.Pencil size={12} />
-                                          </button>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-          </div>
-        </div>
-      )}
+    <>
+      {renderMainContent()}
 
       {/* Add Project Modal */}
       {isModalOpen && (
@@ -923,119 +929,19 @@ const handleOpenEditModal = (projectToEdit: ProjectData) => {
 
       {/* Edit Project Modal - Sử dụng chung Component tái sử dụng */}
       {isEditModalOpen && editingProject && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
-          <div className="bg-[#16171d] border border-zinc-800/80 rounded-xl shadow-2xl w-full max-w-lg m-4">
-            <div className="p-5 border-b border-zinc-800/60 flex justify-between items-center" >
-              <h2 className="text-base font-semibold text-zinc-100">Chỉnh sửa dự án</h2>
-              <button onClick={() => setIsEditModalOpen(false)} className="text-zinc-500 hover:text-zinc-200">&times;</button>
-            </div>
-            <form onSubmit={handleEditProject}>
-              <div className="p-6 space-y-4">
-                <div>
-                  <label htmlFor="edit-year" className="text-xs font-medium text-zinc-400 block mb-1.5">Năm <span className="text-red-500">*</span></label>
-                  <input
-                    id="edit-year"
-                    type="text"
-                    value={editingProject.year}
-                    onChange={(e) => setEditingProject({ ...editingProject, year: e.target.value })}
-                    className="w-full bg-[#0d0e12] border border-zinc-700/80 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500/60 transition-colors"
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="edit-customerId" className="text-xs font-medium text-zinc-400 block mb-1.5">Khách hàng <span className="text-red-500">*</span></label>
-                  <div className={styles.comboboxWrapper} ref={customerComboboxRef}>
-                    <input
-                      id="edit-customerId"
-                      type="text"
-                      placeholder="Gõ để tìm hoặc chọn khách hàng"
-                      value={editingProject.customerId}
-                      onChange={(e) => {
-                        setEditingProject({ ...editingProject, customerId: e.target.value });
-                        setIsCustomerDropdownOpen(true);
-                      }}
-                      onFocus={() => setIsCustomerDropdownOpen(true)}
-                      className={styles.comboboxInput}
-                      required
-                      autoComplete="off"
-                    />
-                    {isCustomerDropdownOpen && (
-                      <div className={styles.suggestionList}>
-                        {uniqueCustomersForForm.filter(c => c.toLowerCase().includes(editingProject.customerId.toLowerCase())).map(c => (
-                          <button key={c} type="button" onClick={() => { setEditingProject({ ...editingProject, customerId: c }); setIsCustomerDropdownOpen(false); }} className={styles.suggestionItem}>{c}</button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="edit-projectId" className="text-xs font-medium text-zinc-400 block mb-1.5">Tên dự án <span className="text-red-500">*</span></label>
-                  <input
-                    id="edit-projectId"
-                    type="text"
-                    value={editingProject.projectId}
-                    onChange={(e) => setEditingProject({ ...editingProject, projectId: e.target.value })}
-                    className="w-full bg-[#0d0e12] border border-zinc-700/80 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500/60 transition-colors"
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="edit-contract" className="text-xs font-medium text-zinc-400 block mb-1.5">Hợp đồng</label>
-                  <input
-                    id="edit-contract"
-                    type="text"
-                    value={editingProject.contract}
-                    onChange={(e) => setEditingProject({ ...editingProject, contract: e.target.value })}
-                    className="w-full bg-[#0d0e12] border border-zinc-700/80 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500/60 transition-colors"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="edit-sale" className="text-xs font-medium text-zinc-400 block mb-1.5">Sale</label>
-                  <input
-                    id="edit-sale"
-                    type="text"
-                    value={editingProject.sale}
-                    onChange={(e) => setEditingProject({ ...editingProject, sale: e.target.value })}
-                    className="w-full bg-[#0d0e12] border border-zinc-700/80 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500/60 transition-colors"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="edit-status" className="text-xs font-medium text-zinc-400 block mb-1.5">Trạng thái</label>
-                  <select
-                    id="edit-status"
-                    value={editingProject.status}
-                    onChange={(e) => setEditingProject({ ...editingProject, status: e.target.value })}
-                    className="w-full bg-[#0d0e12] border border-zinc-700/80 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500/60 transition-colors appearance-none cursor-pointer"
-                  >
-                    {STATUS_OPTIONS.map(status => (
-                      <option key={status} value={status}>{status}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div className="p-4 bg-[#121318] border-t border-zinc-800/60 rounded-b-xl flex justify-between items-center">
-                <div className="h-4">
-                  {editSubmitMessage && (
-                    <p className={`text-xs ${editSubmitMessage.type === 'success' ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {editSubmitMessage.text}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-3">
-                  <button type="button" onClick={() => setIsEditModalOpen(false)} className="text-xs text-zinc-400 hover:text-zinc-100 px-3">Hủy</button>
-                  <button
-                    type="submit"
-                    disabled={isSubmittingEdit}
-                    className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors disabled:bg-zinc-600 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    {isSubmittingEdit && <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>}
-                    {isSubmittingEdit ? 'Đang lưu...' : 'Lưu thay đổi'}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
+        <EditProjectModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingProject(null);
+          }}
+          project={editingProject}
+          customersList={uniqueCustomersForForm || []}
+          onSaveSuccess={() => {
+            // Tự động tải lại dữ liệu mới sau khi lưu thành công
+            router.refresh();
+          }}
+        />
       )}
 
       {/* Structure Management Modal */}
@@ -1048,8 +954,7 @@ const handleOpenEditModal = (projectToEdit: ProjectData) => {
           router={router}
         />
       )}
-
-    </div>
+    </>
   );
 }
 

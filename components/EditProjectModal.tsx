@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import styles from '../years.module.css';
+import styles from '@/app/dashboard/years/years.module.css';
 
 
 interface ProjectData {
